@@ -22,7 +22,9 @@ const config = require('@lib/config');
 const signale = require('signale');
 const del = require('del');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
+const glob = require('glob');
 const through = require('through2');
 const archiver = require('archiver');
 const yaml = require('js-yaml');
@@ -254,6 +256,23 @@ async function buildPages() {
 }
 
 /**
+ * Transforms already built pages and does so while spawning multiple child
+ * processes to speed up processing
+ *
+ * @return {Promise}
+ */
+async function transformPages() {
+  const paths = glob.sync(`${project.paths.GROW_BUILD_DEST}/**/*.html`);
+  const cpuCount = os.cpus().length;
+
+  // If there is no shard option it means this is the initial call to the task
+  // that spawns the subprocesses
+  if (config.options.shard === undefined) {
+    console.log(paths.length / cpuCount);
+  }
+}
+
+/**
  * Collects the static files of all sub projcts to dist while creating ZIPs
  * from folders ending on .zip
  *
@@ -350,6 +369,7 @@ exports.buildSamples = buildSamples;
 exports.buildPages = buildPages;
 
 exports.setupBuild = setupBuild;
+exports.transformPages = transformPages;
 exports.build = gulp.series(fetchArtifacts, gulp.parallel(buildSamples, buildFrontend), buildPages);
 exports.collectStatics = collectStatics;
 exports.finalizeBuild = gulp.parallel(fetchArtifacts, collectStatics, persistBuildInfo);
