@@ -24,7 +24,7 @@ const del = require('del');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const glob = require('glob');
+const globby = require('globby');
 const through = require('through2');
 const archiver = require('archiver');
 const yaml = require('js-yaml');
@@ -235,16 +235,7 @@ async function buildPages() {
     workingDir: project.paths.GROW_POD,
   });
 
-  // After the pages have been built by Grow create transformed versions
-  await new Promise((resolve, reject) => {
-    const stream = pageTransformer.start([
-      `${project.paths.GROW_BUILD_DEST}/**/*.html`,
-      `!${project.paths.GROW_BUILD_DEST}/shared/*.html`,
-    ]);
-
-    stream.on('end', resolve);
-    stream.on('error', reject);
-  });
+  await transformPages();
 
   // ... and again if on Travis store all built files for a later stage to pick up
   if (travis.onTravis()) {
@@ -262,14 +253,43 @@ async function buildPages() {
  * @return {Promise}
  */
 async function transformPages() {
-  const paths = glob.sync(`${project.paths.GROW_BUILD_DEST}/**/*.html`);
-  const cpuCount = os.cpus().length;
+  let paths = await globby([
+    `${project.paths.GROW_BUILD_DEST}/**/*.html`,
+    `!${project.paths.GROW_BUILD_DEST}/shared/*.html`,
+  ]);
+  const shardCount = os.cpus().length;
+  const shardPathCount = Math.trunc(paths.length / shardCount);
 
   // If there is no shard option it means this is the initial call to the task
   // that spawns the subprocesses
   if (config.options.shard === undefined) {
-    console.log(paths.length / cpuCount);
+    signale.info(`Spawning ${shardCount} processes to transform ${paths.length} pages ...`);
+    const shards = [];
+
+    while (shards.length < shardCount) {
+      const shardId = shards.length;
+      const shard = sh(`gulp transformPages --shard ${shardId}`);
+      signale.success(`Started shard ${shardId} ...`);
+      shards.push(shard);
+    }
+
+    return Promise.all(shards);
   }
+
+  // Otherwise it's the actual shard processing a subset of paths
+  const shardId = config.options.shard;
+  const startIndex = shardId * shardPathCount;
+  const endIndex = shardId == shardCount - 1 ? paths.length : (shardId + 1) * shardPathCount;
+  paths = paths.slice(startIndex, endIndex);
+
+  signale.await(`Shard ${shardId}: processing ${paths.length} files ...`);
+  // After the pages have been built by Grow create transformed versions
+  await new Promise((resolve, reject) => {
+    const stream = pageTransformer.start(paths);
+
+    stream.on('end', resolve);
+    stream.on('error', reject);
+  });
 }
 
 /**
