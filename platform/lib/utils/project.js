@@ -49,6 +49,8 @@ const paths = {
   ROOT: absolute('.'),
   BUILD: absolute('build'),
   DIST: absolute('dist'),
+  ICONS: absolute('frontend/icons'),
+  TEMPLATES: absolute('frontend/templates'),
   SCSS: absolute('frontend/scss'),
   CSS: absolute('pages/css'),
   GROW_POD: absolute('pages'),

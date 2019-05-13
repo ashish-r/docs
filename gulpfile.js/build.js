@@ -81,7 +81,7 @@ function clean() {
  *
  * @return {Stream}
  */
-function _sass() {
+function sass() {
   const options = {
     'outputStyle': 'compressed',
     'includePaths': project.paths.SCSS,
@@ -102,8 +102,8 @@ function _sass() {
  *
  * @return {Stream}
  */
-function _templates() {
-  return gulp.src(project.absolute('frontend/templates/**/*'))
+function templates() {
+  return gulp.src(`${project.paths.TEMPLATES}/**/*`)
       .pipe(gulp.dest(project.paths.GROW_POD));
 }
 
@@ -112,8 +112,8 @@ function _templates() {
  *
  * @return {Stream}
  */
-function _icons() {
-  return gulp.src(project.absolute('frontend/icons/**/*'))
+function icons() {
+  return gulp.src(`${project.paths.ICONS}/**/*`)
       .pipe(gulp.dest(`${project.paths.GROW_POD}/icons`));
 }
 
@@ -122,7 +122,7 @@ function _icons() {
  * @return {undefined}
  */
 function buildFrontend(callback) {
-  return (gulp.parallel(_sass, _templates, _icons))(callback);
+  return (gulp.parallel(sass, templates, icons))(callback);
 }
 
 /**
@@ -384,6 +384,8 @@ function persistBuildInfo(done) {
 
 exports.clean = clean;
 exports.importAll = importAll;
+exports.buildPlayground = buildPlayground;
+exports.buildBoilerplate = buildBoilerplate;
 exports.buildFrontend = buildFrontend;
 exports.buildSamples = buildSamples;
 exports.buildPages = buildPages;
