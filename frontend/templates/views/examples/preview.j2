@@ -63,11 +63,11 @@
     {# Set a min-width on the device if there is one set in the sample #}
     <div class="ap-o-preview-pane-device">
       {% if doc.example.document.isAmpAds %}
-      <amp-iframe layout="fill" sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation allow-top-navigation" allowfullscreen allowpaymentrequest frameborder="0" src="{{ podspec.base_urls.preview }}{{ doc.embed }}">
+      <amp-iframe layout="fill" sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation allow-top-navigation" allowfullscreen allowpaymentrequest frameborder="0" src="{{ doc.pod.podspec.base_urls.preview }}{{ doc.embed }}">
         <div placeholder=""></div>
       </amp-iframe>
       {% else %}
-      <amp-iframe layout="fill" sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation allow-top-navigation" allowfullscreen allowpaymentrequest frameborder="0" src="{{ podspec.base_urls.preview }}{{ doc.source }}">
+      <amp-iframe layout="fill" sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation allow-top-navigation" allowfullscreen allowpaymentrequest frameborder="0" src="{{ doc.pod.podspec.base_urls.preview }}{{ doc.source }}">
         <div placeholder=""></div>
       </amp-iframe>
       {% endif %}
